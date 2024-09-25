@@ -4,5 +4,5 @@ namespace UserRegistry.Services.Contracts;
 
 public interface IExportService
 {
-    MemoryStream GetCsvFile(IEnumerable<User> users);
+    MemoryStream GetFile(IEnumerable<User> users);
 }

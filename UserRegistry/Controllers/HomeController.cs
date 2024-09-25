@@ -23,6 +23,6 @@ public class HomeController(IDataGenerator generator, IExportService exportServi
     public IActionResult ExportToCsv([FromBody] IEnumerable<User> users)
     {
 
-        return File(exportService.GetCsvFile(users), "text/csv", "users.csv");
+        return File(exportService.GetFile(users), "text/csv", "users.csv");
     }
 }
