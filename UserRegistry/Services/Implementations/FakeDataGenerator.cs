@@ -18,7 +18,7 @@ public class FakeDataGenerator(IOptions<CountryConfiguration> option) : IDataGen
         
         for (var i = 0; i < settings.Count; i++)
         {
-            var user = GenerateUser(faker, settings, i);
+            var user = GenerateUser(faker, settings);
             fakeUsers.Add(user);
         }
 
@@ -38,11 +38,10 @@ public class FakeDataGenerator(IOptions<CountryConfiguration> option) : IDataGen
         };
     }
 
-    private User GenerateUser(Faker faker, GeneratorSettings settings, int index)
+    private User GenerateUser(Faker faker, GeneratorSettings settings)
     {
         var user = new User
         {
-            Number = (settings.Page - 1) * settings.Count + index + 1,
             Identifier = faker.Random.Guid().ToString(),
             FullName = GenerateFullName(faker),
             Address = GetAddress(faker),

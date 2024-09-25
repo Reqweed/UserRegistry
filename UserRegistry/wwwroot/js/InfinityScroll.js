@@ -1,5 +1,6 @@
 ﻿let page = 1;
 let errorCount = 0;
+let countRecord = 0;
 
 const bodyTable = document.body.querySelector('.table__body');
 const allTable = document.body.querySelector('.table__container');
@@ -11,6 +12,7 @@ const randomSeedButton = document.body.querySelector('.navbar__button-seed');
 
 async function updateTable() {
     page = 1;
+    countRecord = 0;
     bodyTable.innerHTML = "";
     await fetchData(20);
 }
@@ -38,7 +40,7 @@ async function fetchData(count) {
 function addRowsTable(data) {
     const rows = data.map(item => `
         <tr>
-            <td class="text-wrap">${item.number}</td>
+            <td class="text-wrap">${++countRecord}</td>
             <td class="text-wrap">${item.identifier}</td>
             <td class="text-wrap">${item.fullName}</td>
             <td class="text-wrap">${item.address}</td>
