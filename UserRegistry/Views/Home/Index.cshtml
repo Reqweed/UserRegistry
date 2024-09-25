@@ -1,0 +1,152 @@
+@{
+    ViewData["Title"] = "Fake Data Generator";
+}
+
+<h2 class="mb-4">@ViewData["Title"]</h2>
+<nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
+    <div class="container-fluid">
+        <ul class="navbar-nav d-flex flex-row w-100 justify-content-between">
+            <li class="nav-item flex-fill me-2">
+                <label for="regionSelector" class="form-label mb-0">Region:</label>
+                <select id="regionSelector" class="form-select">
+                    <option value="en_US" selected>United States</option>
+                    <option value="de_AT">Austria</option>
+                    <option value="pl">Poland</option>
+                </select>
+            </li>
+            <li class="nav-item flex-fill me-2">
+                <label for="errorCount" class="form-label mb-0">Error:</label>
+                <input type="range" id="errorCount" class="form-range" min="0" max="10" step="0.25" value="0"/>
+            </li>
+            <li class="nav-item flex-fill me-2">
+                <label for="errorCount" class="form-label mb-0">Error:</label>
+                <input type="number" id="errorCountInput" class="form-control" min="0" max="1000" step="1" value="0"/>
+            </li>
+            <li class="nav-item flex-fill">
+                <label for="seedInput" class="form-label mb-0">Seed:</label>
+                <div class="input-group">
+                    <input type="number" id="seedInput" class="form-control" value="0"/>
+                    <button id="randomSeedButton" class="btn btn-secondary">Random</button>
+                </div>
+            </li>
+        </ul>
+    </div>
+</nav>
+<div id="table-container" class="table-responsive" style="height: 400px; overflow-y: auto;">
+    <table id="dataTable" class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>ID</th>
+                <th>Full Name</th>
+                <th>Address</th>
+                <th>Phone</th>
+            </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+    </table>
+</div>
+
+<script>
+    let page = 1;
+    let errorCount = 0;
+
+    const bodyTable = document.getElementById('table-body');
+    const allTable = document.getElementById('table-container');
+    const regionSelector = document.getElementById('regionSelector');
+    const seedInput = document.getElementById('seedInput');
+    const errorCountSlider = document.getElementById('errorCount');
+    const errorCountInput = document.getElementById('errorCountInput');
+
+    async function fetchData() {
+        console.log(`Requesting page ${page} with parameters:`, {
+            region: regionSelector.value,
+            errorCount: errorCount,
+            seed: parseInt(seedInput.value),
+        });
+
+        const response = await fetch('Home/GenerateFakeUsers', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                region: regionSelector.value,
+                errorCount: errorCount,
+                seed: parseInt(seedInput.value),
+                page: page
+            })
+        });
+
+        if (!response.ok) {
+            console.error("Error loading data:", response.statusText);
+            return;
+        }
+
+        const data = await response.json();
+        if (data.length === 0) {
+            console.log("No more data to load");
+            return;
+        }
+
+        addRowsTable(data);
+        page++;
+    }
+
+    function addRowsTable(data) {
+        data.forEach(item => {
+            const row = `<tr>
+                <td>${item.id}</td>
+                <td>${item.identifier}</td>
+                <td>${item.fullName}</td>
+                <td>${item.address}</td>
+                <td>${item.phoneNumber}</td>
+            </tr>`;
+            bodyTable.insertAdjacentHTML('beforeend', row);
+        });
+    }
+
+    allTable.addEventListener('scroll', () => {
+        if (allTable.scrollTop + allTable.clientHeight >= allTable.scrollHeight - 10) {
+            fetchData();
+        }
+    });
+
+    async function updateTable() {
+        page = 1; // Reset page
+        bodyTable.innerHTML = ""; // Clear table
+        await fetchData(); // Load new data
+    }
+
+    // Update error count when slider is moved
+    errorCountSlider.addEventListener('input', () => {
+        errorCountInput.value = errorCountSlider.value;
+        errorCount = parseFloat(errorCountSlider.value);
+        updateTable();
+    });
+
+    // Update error count when number input is changed
+    errorCountInput.addEventListener('input', () => {
+        const inputValue = parseInt(errorCountInput.value);
+        if (inputValue >= 0 && inputValue <= 1000) {
+            errorCount = inputValue;
+            errorCountSlider.value = inputValue; // Update range slider
+            updateTable();
+        }
+    });
+
+    // Generate a random seed
+    function generateRandomSeed() {
+        const randomSeed = Math.floor(Math.random() * (2147483647 + 1));
+        seedInput.value = randomSeed;
+        updateTable();
+    }
+
+    // Add event listeners
+    regionSelector.addEventListener('change', updateTable);
+    seedInput.addEventListener('input', updateTable);
+    document.getElementById('randomSeedButton').addEventListener('click', generateRandomSeed);
+
+    // Initial data fetch
+    fetchData();
+</script>
